@@ -1,9 +1,7 @@
 import socket, sys
 import threading
-from http_parser import HttpParser, construire_reponse_302, parser_requete_http
-from session_manager import SessionManager
-
-session_manager = SessionManager()
+from http_parser import construire_reponse_302,parser_requete_http, RequeteHTTP
+from session_manager import is_authenticated
 
 #définition d'un serveur réseau rudimentaire
 # ce serveur attend la connexion d'un client
@@ -42,7 +40,7 @@ def poolClient(connexion, adresse, counter):
         ip_client = adresse[0]
 
         # vérification de l'authentification du client
-        if not session_manager.is_authenticated(ip_client):
+        if not is_authenticated(ip_client):
             print(f"[!] {ip_client} non authentifié → redirection")
 
             url = "http://localhost:5000/portail"
@@ -98,7 +96,7 @@ def creationServeur():
 
         ## 4) etablissement de la connexion 
 
-        connexion, adresse = monPortServeur.accept()
+        connexion, adresse = monPortServeur.accept() #acceptation de la connexion d'un client et récupération de son adresse
         counter += 1
         print("Client connecté depuis l'adresse: ", adresse, "Nombre de clients connectés: ", counter)
 
