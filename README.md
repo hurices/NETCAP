@@ -24,3 +24,8 @@ de leur comportement de navigation.
 ```bash
 uvicorn api.main:app --reload
 Puis ouvrir :http://127.0.0.1:8000/docs
+
+## Lancement Sprint 2 (Proxy HTTP)
+
+```bash
+python proxy/proxy_server.py
