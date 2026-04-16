@@ -1,38 +1,45 @@
-from flask import Flask, request, redirect, render_template
-from session_manager import SessionManager
+import sys
+import os
+import flask
 
-app = Flask(__name__)
+# 🔧 rendre proxy visible
+sys.path.append(
+    os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "proxy")
+    )
+)
 
-session_manager = SessionManager()
+import session_manager
+
+app = flask.Flask(__name__)
 
 
 @app.route("/portail", methods=["GET", "POST"])
 def portail():
-    if request.method == "POST":
 
-        username = request.form.get("username")
-        password = request.form.get("password")
+    if flask.request.method == "POST":
 
-        # Authentification simple (pour test)
+        username = flask.request.form.get("username")
+        password = flask.request.form.get("password")
+
         if username == "admin" and password == "1234":
 
-            # récupérer IP client
-            ip = request.remote_addr
+            ip = flask.request.remote_addr
 
-            # créer session
+            print(f"[LOGIN] IP authentifiée: {ip}")
+
             session_manager.create_session(ip)
 
-            # redirection vers site demandé
-            redirect_url = request.args.get("redirect_url")
+            redirect_url = flask.request.args.get("redirect_url")
 
             if redirect_url:
-                return redirect(redirect_url)
+                return flask.redirect(redirect_url)
 
             return "Authentifié"
 
         return "Erreur login"
 
-    return render_template("login.html")
+    return flask.render_template("login.html")
 
 
 if __name__ == "__main__":
