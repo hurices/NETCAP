@@ -11,6 +11,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
+from datetime import datetime
 
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -64,51 +65,52 @@ async def lire_seuils() -> ConfigSeuils:
     "/seuils",
     response_model=ConfigSeuils,
     summary="Mettre à jour les seuils d'alerte",
-    description=(
-        "Modifie les seuils de détection d'anomalies en temps réel. "
-        "Les modifications prennent effet immédiatement. Requiert le token admin."
-    ),
-    dependencies=[Depends(_verifier_token_admin)],
 )
 async def mettre_a_jour_seuils(nouveaux_seuils: ConfigSeuils) -> ConfigSeuils:
     """
-    Met à jour la configuration en mémoire. Pas de persistance disque (Sprint 1).
-    Sprint 4 : sauvegarder dans un fichier JSON pour survie au redémarrage.
+    Met à jour la configuration en mémoire.
     """
     global _config_courante
     _config_courante = nouveaux_seuils
-    logger.info(
-        "Seuils mis à jour par admin — zscore=%.1f volume_max=%dMo durée_max=%dmin",
-        nouveaux_seuils.zscore_seuil,
-        nouveaux_seuils.volume_max_session_mb,
-        nouveaux_seuils.duree_session_max_min,
-    )
+    
+    # Mettre à jour les composants en temps réel
+    from analyse.pipeline import pipeline
+    pipeline.detecteur.zscore_threshold = nouveaux_seuils.zscore_seuil
+    pipeline.detecteur.max_volume_mb = nouveaux_seuils.volume_max_session_mb
+    
+    logger.info("Seuils mis à jour avec succès.")
     return _config_courante
 
 
 @router.get(
     "/export/csv",
     summary="Exporter les données en CSV",
-    description=(
-        "Exporte les événements de navigation de la période demandée au format CSV. "
-        "Paramètres : debut (ISO datetime), fin (ISO datetime), colonnes (liste séparée par virgules)."
-    ),
 )
 async def export_csv(
-    debut: str | None = None,
-    fin: str | None = None,
-    colonnes: str | None = None,
-) -> dict:
+    debut: datetime | None = None,
+    fin: datetime | None = None,
+) -> StreamingResponse:
     """
-    Sprint 4 : génération du CSV depuis le DataFrame Pandas.
-    Sprint 1 : stub documenté.
+    Génération du CSV depuis le DataFrame Pandas.
     """
-    # TODO Sprint 4 : pipeline.exporter_csv(debut, fin, colonnes)
-    return {
-        "message": "Export CSV disponible au Sprint 4.",
-        "parametres_recus": {
-            "debut": debut,
-            "fin": fin,
-            "colonnes": colonnes.split(",") if colonnes else None,
-        },
-    }
+    from analyse.pipeline import pipeline
+    import io
+    
+    df = pipeline.dataframe
+    if df is None or df.empty:
+        raise HTTPException(status_code=404, detail="Aucune donnée à exporter.")
+    
+    # Filtrage temporel si demandé
+    if debut:
+        df = df[df['timestamp'] >= debut]
+    if fin:
+        df = df[df['timestamp'] <= fin]
+        
+    stream = io.StringIO()
+    df.to_csv(stream, index=False)
+    
+    return StreamingResponse(
+        iter([stream.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=export_netcapt_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
+    )

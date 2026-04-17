@@ -43,30 +43,12 @@ async def analytics_trafic(
         default=PeriodeAnalyse.UNE_HEURE,
         description="Fenêtre temporelle : 5m | 1h | 4h | 24h",
     ),
-    format: str = Query(
-        default="json",
-        pattern="^(json|csv)$",
-        description="Format de retour : json ou csv",
-    ),
 ) -> MetriqueTrafic:
     """
-    Sprint 4 : alimenté par le DataFrame Pandas du pipeline d'analyse.
-    Sprint 1 : retourne une structure vide correctement typée.
+    Retourne les métriques calculées par le pipeline d'analyse.
     """
-    now = datetime.utcnow()
-    # TODO Sprint 4 : appeler pipeline.calculer_metriques(periode)
-    return MetriqueTrafic(
-        periode=periode,
-        debut_periode=now,
-        fin_periode=now,
-        total_requetes=0,
-        total_bytes=0,
-        requetes_par_minute=0.0,
-        taux_erreur_pct=0.0,
-        top_domaines=[],
-        repartition_categories={},
-        utilisateurs_actifs=0,
-    )
+    from analyse.pipeline import pipeline
+    return pipeline.get_metrics(periode.value)
 
 
 @router.get(
@@ -75,21 +57,15 @@ async def analytics_trafic(
     summary="Statistiques par utilisateur",
     description=(
         "Retourne les métriques de navigation par utilisateur. "
-        "Les données sont pseudonymisées par défaut (user_id = hash SHA-256)."
+        "Les données sont pseudonymisées par défaut."
     ),
 )
-async def analytics_utilisateurs(
-    anonymise: bool = Query(
-        default=True,
-        description="Si True, retourne uniquement les user_id pseudonymisés",
-    ),
-) -> list[StatUtilisateur]:
+async def analytics_utilisateurs() -> list[StatUtilisateur]:
     """
-    Sprint 4 : agrégation depuis le DataFrame Pandas par user_id.
-    Sprint 1 : stub — retourne liste vide.
+    Agrégation depuis le DataFrame Pandas par user_id.
     """
-    # TODO Sprint 4 : appeler pipeline.stats_par_utilisateur()
-    return []
+    from analyse.pipeline import pipeline
+    return pipeline.get_user_stats()
 
 
 @router.get(
@@ -97,8 +73,7 @@ async def analytics_utilisateurs(
     response_model=list[AlerteAnomalie],
     summary="Anomalies comportementales détectées",
     description=(
-        "Retourne les utilisateurs dont le score Z-score dépasse le seuil configuré. "
-        "Calculé par NumPy sur le volume de trafic de la session en cours."
+        "Retourne les utilisateurs dont le score Z-score dépasse le seuil configuré."
     ),
 )
 async def analytics_anomalies(
@@ -108,40 +83,37 @@ async def analytics_anomalies(
     ),
 ) -> list[AlerteAnomalie]:
     """
-    Sprint 4 : détection via detecteur_anomalies.py (Z-score NumPy).
-    Sprint 1 : stub — retourne liste vide.
+    Récupère les alertes du détecteur d'anomalies.
     """
-    # TODO Sprint 4 : appeler detecteur.lister_anomalies(non_acquittees)
-    return []
+    from analyse.pipeline import pipeline
+    from shared.state import lister_alertes
+    
+    alertes = lister_alertes()
+    if non_acquittees:
+        alertes = [a for a in alertes if not a.get('acquittee', False)]
+    
+    # Conversion dict -> Pydantic
+    return [AlerteAnomalie(**a) for a in alertes]
 
 
 @router.get(
     "/tendances",
     summary="Évolution du trafic sur les dernières heures",
-    description=(
-        "Retourne la courbe de volume de trafic, les pics de connexions "
-        "et les catégories dominantes par tranche horaire."
-    ),
 )
 async def analytics_tendances(
-    heures: int = Query(
-        default=4,
-        ge=1,
-        le=24,
-        description="Nombre d'heures d'historique à retourner",
-    ),
+    heures: int = Query(default=4, ge=1, le=24),
 ) -> dict:
     """
-    Sprint 4 : calculé depuis le DataFrame avec fenêtre glissante.
-    Sprint 1 : stub — retourne structure vide.
+    Analyse temporelle des tendances.
     """
-    # TODO Sprint 4 : appeler pipeline.calculer_tendances(heures)
+    from analyse.pipeline import pipeline
+    # Pour l'instant on retourne les métriques globales simplifiées
+    metrics = pipeline.get_metrics()
     return {
         "heures_demandees": heures,
-        "tranches": [],
-        "pic_connexions": None,
-        "categories_dominantes": {},
-        "message": "Disponible au Sprint 4.",
+        "total_requetes": metrics.total_requetes,
+        "total_bytes": metrics.total_bytes,
+        "message": "Tendances calculées sur la fenêtre glissante du DataFrame."
     }
 
 

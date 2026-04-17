@@ -6,7 +6,7 @@ Catégorisation des domaines.
 from typing import Dict, Optional
 import logging
 
-from config import config
+import config
 from api.schemas import CategoryEnum
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ class Categoriseur:
 
         # Patterns génériques (ex: *.podcast.*)
         self.patterns: Dict[str, str] = {
-            "podcast": CategoryEnum.STREAMING_AUDIO,
+            "podcast": CategoryEnum.STREAMING,
             "blog": CategoryEnum.NEWS,
             "forum": CategoryEnum.SOCIAL,
         }
@@ -56,9 +56,23 @@ class Categoriseur:
         Returns:
             Catégorie correspondante
         """
-        # TODO Sprint 3: Implémentation complète
-        # Pour le Sprint 1, retourne toujours OTHER
-        logger.debug(f"Catégorisation demandée pour {domain} (Sprint 3)")
+        normalized = self._normalize_domain(domain)
+        
+        # 1. Correspondance exacte
+        exact = self._check_exact_match(normalized)
+        if exact:
+            return CategoryEnum(exact)
+            
+        # 2. Correspondance par sous-domaine
+        sub = self._check_subdomain_match(normalized)
+        if sub:
+            return CategoryEnum(sub)
+            
+        # 3. Correspondance par pattern
+        pattern = self._check_pattern_match(normalized)
+        if pattern:
+            return CategoryEnum(pattern)
+            
         return CategoryEnum.OTHER
 
     def _normalize_domain(self, domain: str) -> str:

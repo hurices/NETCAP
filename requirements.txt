@@ -12,3 +12,7 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 uvicorn==0.42.0
 pytest==7.4.4
+pandas==2.2.0
+numpy==1.26.3
+requests==2.31.0
+matplotlib==3.8.2

@@ -13,8 +13,8 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import logging
 
-from config import config
-from api.schemas import AnomalyAlert, CategoryEnum
+import config
+from api.schemas import AlerteAnomalie, CategoryEnum
 
 logger = logging.getLogger(__name__)
 
@@ -37,45 +37,85 @@ class DetecteurAnomalies:
             zscore_threshold: Seuil Z-score (défaut: config.ANOMALY_ZSCORE_THRESHOLD)
             max_volume_mb: Volume max par session en MB (défaut: config.ANOMALY_VOLUME_MAX_MB)
         """
-        self.zscore_threshold = zscore_threshold or config.ANOMALY_ZSCORE_THRESHOLD
-        self.max_volume_mb = max_volume_mb or config.ANOMALY_VOLUME_MAX_MB
-        self.min_samples = config.ANOMALY_MIN_SAMPLES
+        self.zscore_threshold = zscore_threshold or config.ANOMALIE_ZSCORE_SEUIL
+        self.max_volume_mb = max_volume_mb or config.ANOMALIE_VOLUME_MAX_SESSION_MB
+        self.min_samples = config.ANOMALIE_MIN_SAMPLES
 
-        self.alerts: List[AnomalyAlert] = []
+        self.alerts: List[AlerteAnomalie] = []
         self._last_check = datetime.now()
 
         logger.info(f"DetecteurAnomalies initialisé: seuil Z-score={self.zscore_threshold}, "
                     f"volume max={self.max_volume_mb}MB, min_samples={self.min_samples}")
 
-    def detecter(self, dataframe) -> List[AnomalyAlert]:
+    def detecter(self, dataframe) -> List[AlerteAnomalie]:
         """
         Détecte les anomalies dans le DataFrame.
-
-        Args:
-            dataframe: DataFrame Pandas contenant les événements
-
-        Returns:
-            Liste des alertes d'anomalies
+        Utilise NumPy pour le calcul vectorisé du Z-score.
         """
-        # TODO Sprint 4: Implémentation avec NumPy
-        logger.debug("Détection d'anomalies (Sprint 4)")
-        return []
+        import numpy as np
+        from shared.state import ajouter_alerte
+        import uuid
+
+        if dataframe is None or len(dataframe) < self.min_samples:
+            return []
+
+        # Grouper par utilisateur pour avoir le volume total par session
+        stats_user = dataframe.groupby('user_id')['taille_bytes'].sum() / (1024 * 1024)  # MB
+        
+        users = stats_user.index.tolist()
+        volumes = stats_user.values
+        
+        mean_v = np.mean(volumes)
+        std_v = np.std(volumes)
+        
+        if std_v == 0:
+            std_v = 1e-6  # Éviter division par zéro
+
+        z_scores = (volumes - mean_v) / std_v
+        
+        new_alerts = []
+        for i, z in enumerate(z_scores):
+            user_id = users[i]
+            volume = volumes[i]
+            
+            # Vérifier si Z-score dépasse le seuil OU si volume > max absolu
+            if abs(z) > self.zscore_threshold or volume > self.max_volume_mb:
+                # Créer une alerte
+                alerte = AlerteAnomalie(
+                    alerte_id=str(uuid.uuid4()),
+                    user_id=user_id,
+                    ip_client=dataframe[dataframe['user_id'] == user_id]['ip_client'].iloc[0],
+                    score_zscore=float(z),
+                    volume_session=int(volume * 1024 * 1024),
+                    volume_moyen_groupe=float(mean_v * 1024 * 1024),
+                    timestamp_detection=datetime.now(),
+                    details=f"Volume anormal: {volume:.2f} MB (Z-score: {z:.2f})",
+                    acquittee=False
+                )
+                
+                # Éviter les alertes en double pour la même session/utilisateur trop rapprochées
+                last_alerts = [a for a in self.alerts if a.user_id == user_id]
+                if not last_alerts or (datetime.now() - last_alerts[-1].timestamp_detection).seconds > 300:
+                    self.alerts.append(alerte)
+                    new_alerts.append(alerte)
+                    # Sauvegarder dans l'état partagé
+                    ajouter_alerte(alerte.model_dump())
+                    logger.warning(f"ANOMALIE DÉTECTÉE: User={user_id}, Z={z:.2f}, Vol={volume:.2f}MB")
+        
+        self._last_check = datetime.now()
+        return new_alerts
 
     def _calculate_zscore(self, values: List[float]) -> List[float]:
-        """
-        Calcule le Z-score pour une liste de valeurs.
-
-        Z-score = (x - μ) / σ
-        où μ = moyenne, σ = écart-type
-
-        Args:
-            values: Liste des valeurs
-
-        Returns:
-            Liste des Z-scores
-        """
-        # TODO Sprint 4: Implémentation NumPy
-        return []
+        """Calcule le Z-score avec NumPy."""
+        import numpy as np
+        if not values:
+            return []
+        arr = np.array(values)
+        mean = np.mean(arr)
+        std = np.std(arr)
+        if std == 0:
+            return [0.0] * len(values)
+        return ((arr - mean) / std).tolist()
 
     def _is_anomaly(self, volume_mb: float, mean_volume: float, std_volume: float) -> bool:
         """
@@ -95,7 +135,7 @@ class DetecteurAnomalies:
         zscore = (volume_mb - mean_volume) / std_volume
         return abs(zscore) > self.zscore_threshold
 
-    def get_alerts(self) -> List[AnomalyAlert]:
+    def get_alerts(self) -> List[AlerteAnomalie]:
         """Retourne toutes les alertes générées."""
         return self.alerts.copy()
 

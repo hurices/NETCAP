@@ -47,46 +47,68 @@ async def lister_sessions() -> list[SessionActive]:
     "/{session_id}",
     response_model=SessionDetail,
     summary="Détail d'une session",
-    description="Retourne les métadonnées complètes et les 50 dernières requêtes.",
+    description="Retourne les métadonnées complètes et les derniers événements.",
 )
 async def detail_session(session_id: str) -> SessionDetail:
     """404 si la session est introuvable ou expirée."""
+    from shared.state import lister_sessions_actives
+    from analyse.pipeline import pipeline
+    
     sessions = lister_sessions_actives()
-    session = next((s for s in sessions if s.session_id == session_id), None)
-    if not session:
+    session_data = next((s for s in sessions if s.get('session_id') == session_id), None)
+    
+    if not session_data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Session '{session_id}' introuvable ou expirée.",
         )
-    return SessionDetail(**session.model_dump())
+    
+    # Enrichir avec l'historique du pipeline
+    if pipeline.dataframe is not None and not pipeline.dataframe.empty:
+        historique = pipeline.dataframe[pipeline.dataframe['session_id'] == session_id]
+        derniers = historique.tail(50).to_dict('records')
+    else:
+        derniers = []
+        
+    return SessionDetail(
+        **session_data,
+        derniers_evenements=derniers
+    )
 
 
 @router.delete(
-    "/{session_id}",
+    "/{identifier}",
     summary="Forcer la déconnexion d'un utilisateur",
-    description="Révoque une session active. Requiert le token admin.",
+    description="Révoque une session active par session_id ou adresse IP.",
     dependencies=[Depends(_verifier_token_admin)],
 )
-async def deconnecter_session(session_id: str) -> dict:
+async def deconnecter_session(identifier: str) -> dict:
     """
-    Révoque la session. La prochaine requête du client sera redirigée vers le portail.
+    Révoque la session. L'identifiant peut être un UUID de session ou une adresse IP.
     """
-    sessions = lister_sessions_actives()
-    session = next((s for s in sessions if s.session_id == session_id), None)
+    sessions_list = lister_sessions_actives()
+    # Recherche par ID ou par IP
+    session = next((s for s in sessions_list if s.get('session_id') == identifier or s.get('ip_client') == identifier), None)
+    
     if not session:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Session '{session_id}' introuvable.",
+            detail=f"Session ou IP '{identifier}' introuvable.",
         )
-    succes = revoquer_session(session.ip_client, raison="déconnexion forcée par admin")
+    
+    ip_client = session.get('ip_client')
+    user_id = session.get('user_id', 'Anonyme')
+    session_id = session.get('session_id')
+    
+    succes = revoquer_session(ip_client, reason="déconnexion forcée par admin")
     if not succes:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Échec de la révocation de session.",
         )
-    logger.info("Session révoquée par admin — session_id=%s ip=%s", session_id, session.ip_client)
+    logger.info("Session révoquée par admin — identifier=%s ip=%s", identifier, ip_client)
     return {
         "message": f"Session {session_id} révoquée avec succès.",
-        "ip": session.ip_client,
-        "user_id": session.user_id,
+        "ip": ip_client,
+        "user_id": user_id,
     }

@@ -40,73 +40,50 @@ stats = {
 
 # Verrou pour sécuriser les accès concurrents
 lock = Lock()
+_running = True
+
+def is_running():
+    return _running
+
+def stop_system():
+    global _running
+    _running = False
 
 
 def ajouter_session(ip_client, user_id=None, duree_min=30):
     """
     Crée une nouvelle session pour un utilisateur.
-    Support les deux signatures:
-    - ajouter_session(ip_client, user_id, duree_min) - ancienne signature
-    - ajouter_session(session_data) - nouvelle signature avec dictionnaire
-    
-    :param ip_client: adresse IP du client ou dictionnaire de session
-    :param user_id: identifiant utilisateur (email ou pseudo)
-    :param duree_min: durée de la session en minutes
-    :return: identifiant de session (UUID)
+    Supporte la signature classique du Sprint 2 et la signature par dictionnaire.
     """
     with lock:
         session_id = str(uuid.uuid4())
         
-        # Support la nouvelle signature (dictionnaire)
-        if isinstance(ip_client, dict):
+        # Si ip_client est un dictionnaire (cas de l'injection directe de données complexes)
+        if isinstance(ip_client, dict) and 'ip_client' in ip_client:
             session_data = ip_client
-            ip = session_data.get('ip_client')
-            if not ip:
-                return None
-                
-            expiration_str = session_data.get('expires_at')
-            if expiration_str:
-                try:
-                    expiration = datetime.fromisoformat(expiration_str)
-                except:
-                    expiration = datetime.now() + timedelta(minutes=30)
-            else:
-                expiration = datetime.now() + timedelta(minutes=30)
-                
-            session_record = {
-                "session_id": session_id,
-                "token": session_data.get('token', session_id),
-                "user_id": session_data.get('user_id'),
-                "user_name": session_data.get('user_name'),
-                "ip_client": ip,
-                "expiration": expiration,
-                "expires_at": expiration.isoformat(),
-                "created_at": datetime.now().isoformat(),
-                "nb_requetes": 0,
-                "volume_bytes": 0
-            }
-            sessions[ip] = session_record
-            stats["active_sessions"] = len(sessions)
-            return session_id
-        
-        # Support l'ancienne signature (3 paramètres)
+            target_ip = session_data['ip_client']
+            duration = duree_min
+            # Fusionner les données
+            session_record = session_data.copy()
+            session_record.setdefault('session_id', session_id)
+            session_record.setdefault('debut', datetime.now())
+            session_record['expiration'] = datetime.now() + timedelta(minutes=duration)
+            sessions[target_ip] = session_record
         else:
-            ip = ip_client
-            uid = user_id
-            duration = duree_min if duree_min else 30
-            expiration = datetime.now() + timedelta(minutes=duration)
-            
-            session_record = {
+            # Signature classique
+            expiration = datetime.now() + timedelta(minutes=duree_min)
+            sessions[ip_client] = {
                 "session_id": session_id,
-                "user_id": uid,
+                "ip_client": ip_client,
+                "user_id": user_id,
+                "debut": datetime.now(),
                 "expiration": expiration,
-                "expires_at": expiration.isoformat(),
                 "nb_requetes": 0,
                 "volume_bytes": 0
             }
-            sessions[ip] = session_record
-            stats["active_sessions"] = len(sessions)
-            return session_id
+        
+        stats["active_sessions"] = len(sessions)
+        return session_id
 
 
 def obtenir_session(ip_client: str):
