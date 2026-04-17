@@ -69,6 +69,7 @@ class RequeteHTTP:
     user_agent: str                     # User-Agent ou "" si absent
     content_length: int                 # Valeur de Content-Length (0 si absent)
     referer: str                        # Valeur de Referer ou ""
+    body: bytes = b""                 # Corps de la requête, si présent
     en_tetes: dict[str, str] = field(default_factory=dict)  # Tous les en-têtes
 
     @property
@@ -108,18 +109,26 @@ def parser_requete_http(donnees_brutes: bytes) -> RequeteHTTP | None:
     if not donnees_brutes:
         return None
 
-    # Décoder en UTF-8 avec fallback latin-1 (évite UnicodeDecodeError)
-    try:
-        texte = donnees_brutes.decode("utf-8", errors="replace")
-    except Exception as e:
-        logger.debug("Échec décodage UTF-8 : %s", e)
+    # Séparer les en-têtes du corps en bytes
+    if b"\r\n\r\n" in donnees_brutes:
+        section_entetes, corps = donnees_brutes.split(b"\r\n\r\n", 1)
+        separateur = b"\r\n"
+    elif b"\n\n" in donnees_brutes:
+        section_entetes, corps = donnees_brutes.split(b"\n\n", 1)
+        separateur = b"\n"
+    else:
+        # Pas de séparation trouvée : la requête est incomplète ou invalide
+        logger.debug("Aucun séparateur de headers trouvé")
         return None
 
-    # Séparer les en-têtes du corps (les en-têtes se terminent par \r\n\r\n)
-    separateur = "\r\n\r\n" if "\r\n\r\n" in texte else "\n\n"
-    section_entetes = texte.split(separateur, 1)[0]
+    # Décoder uniquement la partie en-têtes (fallback latin-1 pour tolérance)
+    try:
+        texte_entetes = section_entetes.decode("utf-8", errors="replace")
+    except Exception as e:
+        logger.debug("Échec décodage en-têtes UTF-8 : %s", e)
+        return None
 
-    lignes = section_entetes.splitlines()
+    lignes = texte_entetes.split(separateur.decode())
     if len(lignes) < 1:
         logger.debug("Requête trop courte — impossible à parser")
         return None
@@ -165,6 +174,7 @@ def parser_requete_http(donnees_brutes: bytes) -> RequeteHTTP | None:
         user_agent=user_agent,
         content_length=content_length,
         referer=referer,
+        body=corps,
         en_tetes=en_tetes,
     )
 
