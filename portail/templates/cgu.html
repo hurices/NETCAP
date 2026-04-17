@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conditions Générales d'Utilisation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+            color: #202124;
+        }
+        
+        .header {
+            background: white;
+            padding: 24px 0;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+            margin-bottom: 32px;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            font-weight: 500;
+            margin: 0;
+            color: #202124;
+            letter-spacing: 0.25px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            color: #5f6368;
+            margin: 8px 0 0 0;
+            font-weight: 300;
+        }
+        
+        .container-cgu {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+        
+        .cgu-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+            padding: 32px;
+            margin-bottom: 24px;
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .cgu-card:hover {
+            box-shadow: 0 1px 3px 0 rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15);
+        }
+        
+        .cgu-intro {
+            background: white;
+            border-left: 4px solid #1f71b8;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .cgu-intro p {
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #3c4043;
+        }
+        
+        .section {
+            margin-bottom: 28px;
+        }
+        
+        .section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .section h2 {
+            font-size: 18px;
+            font-weight: 500;
+            color: #1f71b8;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #dadce0;
+            letter-spacing: 0.1px;
+        }
+        
+        .section p {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #5f6368;
+            margin: 0;
+            text-align: justify;
+        }
+        
+        .section p + p {
+            margin-top: 12px;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #dadce0;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        
+        .btn-cgu {
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.25px;
+        }
+        
+        .btn-accept {
+            background-color: #1f71b8;
+            color: white;
+        }
+        
+        .btn-accept:hover {
+            background-color: #185aa8;
+            box-shadow: 0 2px 4px rgba(31, 113, 184, 0.3);
+        }
+        
+        .btn-decline {
+            background-color: #f1f3f4;
+            color: #3c4043;
+            border: 1px solid #dadce0;
+        }
+        
+        .btn-decline:hover {
+            background-color: #e8eaed;
+            box-shadow: 0 1px 2px rgba(60, 64, 67, 0.1);
+        }
+        
+        .scroll-indicator {
+            text-align: center;
+            padding: 16px;
+            font-size: 12px;
+            color: #9aa0a6;
+            margin-top: 16px;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .cgu-card {
+                padding: 20px;
+            }
+            
+            .actions {
+                flex-direction: column;
+                justify-content: center;
+            }
+            
+            .btn-cgu {
+                width: 100%;
+            }
+            
+            .section h2 {
+                font-size: 16px;
+            }
+            
+            .section p {
+                font-size: 13px;
+            }
+        }
+        
+        .checkbox-acceptance {
+            margin-top: 24px;
+            padding: 16px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .checkbox-acceptance label {
+            display: flex;
+            align-items: center;
+            margin: 0;
+            cursor: pointer;
+            font-size: 14px;
+            color: #3c4043;
+        }
+        
+        .checkbox-acceptance input[type="checkbox"] {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #1f71b8;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="container-cgu">
+            <h1>Conditions Générales d'Utilisation</h1>
+            <p>Veuillez lire attentivement avant de continuer</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container-cgu">
+        <!-- Introduction -->
+        <div class="cgu-intro fade-in">
+            <p>Bienvenue sur notre portail captif. En utilisant ce service, vous acceptez les conditions générales d'utilisation suivantes. Prenez le temps de lire cette documentation complète.</p>
+        </div>
+
+        <!-- CGU Card -->
+        <div class="cgu-card fade-in">
+            <!-- Section 1 -->
+            <div class="section">
+                <h2>1. Acceptation des CGU</h2>
+                <p>En accédant et en utilisant ce portail captif, vous acceptez de vous conformer à ces conditions générales d'utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser ce service.</p>
+            </div>
+
+            <!-- Section 2 -->
+            <div class="section">
+                <h2>2. Utilisation du Service</h2>
+                <p>Vous vous engagez à utiliser ce portail captif de manière légale et à ne pas l'utiliser à des fins illégales ou non autorisées. Vous acceptez de ne pas perturber le fonctionnement du service ou d'interférer avec l'accès d'autres utilisateurs.</p>
+            </div>
+
+            <!-- Section 3 -->
+            <div class="section">
+                <h2>3. Propriété Intellectuelle</h2>
+                <p>Tout le contenu présent sur ce portail captif, y compris les textes, les images, les logos et les marques, est la propriété de l'entreprise ou de ses partenaires et est protégé par les lois sur la propriété intellectuelle. Vous vous engagez à ne pas reproduire, distribuer ou utiliser ce contenu sans autorisation préalable.</p>
+            </div>
+
+            <!-- Section 4 -->
+            <div class="section">
+                <h2>4. Confidentialité</h2>
+                <p>Nous respectons votre vie privée et nous nous engageons à protéger vos informations personnelles. Veuillez consulter notre politique de confidentialité pour en savoir plus sur la manière dont nous collectons, utilisons et protégeons vos données.</p>
+            </div>
+
+            <!-- Section 5 -->
+            <div class="section">
+                <h2>5. Modifications des CGU</h2>
+                <p>Nous nous réservons le droit de modifier ces conditions générales d'utilisation à tout moment. Les modifications seront publiées sur cette page et prendront effet immédiatement après leur publication. Il est de votre responsabilité de consulter régulièrement cette page pour prendre connaissance des éventuelles modifications.</p>
+            </div>
+
+            <!-- Section 6 -->
+            <div class="section">
+                <h2>6. Limitation de Responsabilité</h2>
+                <p>Nous ne serons pas responsables des dommages directs, indirects, accessoires, spéciaux ou consécutifs résultant de l'utilisation ou de l'incapacité à utiliser ce portail captif, même si nous avons été informés de la possibilité de tels dommages. En aucun cas, notre responsabilité ne dépassera le montant que vous avez payé pour accéder à ce service.</p>
+            </div>
+
+            <!-- Checkbox Acceptance -->
+            <div class="checkbox-acceptance">
+                <label>
+                    <input type="checkbox" id="acceptCheckbox" required>
+                    <span>J'accepte les Conditions Générales d'Utilisation</span>
+                </label>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="actions">
+                <button class="btn-cgu btn-decline" onclick="handleDecline()">Refuser</button>
+                <button class="btn-cgu btn-accept" id="acceptBtn" onclick="handleAccept()" disabled>Accepter</button>
+            </div>
+        </div>
+
+        <div class="scroll-indicator">
+            Assurez-vous d'avoir lu l'intégralité du document avant d'accepter
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Enable/Disable accept button based on checkbox
+        const acceptCheckbox = document.getElementById('acceptCheckbox');
+        const acceptBtn = document.getElementById('acceptBtn');
+
+        acceptCheckbox.addEventListener('change', function() {
+            acceptBtn.disabled = !this.checked;
+        });
+
+        function handleAccept() {
+            if (acceptCheckbox.checked) {
+                // Store acceptance in localStorage or send to server
+                localStorage.setItem('cgu_accepted', 'true');
+                localStorage.setItem('cgu_accepted_date', new Date().toISOString());
+                
+                // Redirect to dashboard or main page
+                alert('Merci d\'avoir accepté les CGU!');
+                // window.location.href = '/dashboard'; // Adjust the redirect URL as needed
+            }
+        }
+
+        function handleDecline() {
+            // Redirect to a decline page or show a message
+            alert('Vous avez refusé les CGU. Vous ne pouvez pas continuer.');
+            // window.location.href = '/login'; // Adjust the redirect URL as needed
+        }
+
+        // Prevent scrolling to top on form submission
+        document.querySelector('form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>

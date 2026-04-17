@@ -1,21 +1,472 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Portail Captif</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Portail Captif</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1f71b8 0%, #0d47a1 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar */
+        .navbar-custom {
+            background: white;
+            box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+            padding: 12px 0;
+        }
+
+        .navbar-custom-brand {
+            font-size: 18px;
+            font-weight: 500;
+            color: #1f71b8;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar-custom-brand i {
+            font-size: 24px;
+        }
+
+        /* Main Container */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding: 20px;
+        }
+
+        /* Login Card */
+        .login-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 420px;
+            padding: 48px 40px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            font-weight: 500;
+            color: #202124;
+            margin-bottom: 8px;
+            letter-spacing: 0.25px;
+        }
+
+        .login-header p {
+            font-size: 14px;
+            color: #5f6368;
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #202124;
+            display: block;
+            margin-bottom: 8px;
+            letter-spacing: 0.1px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 14px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            background-color: #f8f9fa;
+            color: #202124;
+        }
+
+        .form-control:focus {
+            background-color: white;
+            border-color: #1f71b8;
+            box-shadow: 0 0 0 3px rgba(31, 113, 184, 0.1);
+            outline: none;
+        }
+
+        .form-control::placeholder {
+            color: #9aa0a6;
+        }
+
+        .form-check {
+            margin-bottom: 24px;
+            margin-top: 16px;
+        }
+
+        .form-check input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #1f71b8;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .form-check label {
+            font-size: 13px;
+            color: #5f6368;
+            margin: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            background-color: #1f71b8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.25px;
+            margin-bottom: 12px;
+        }
+
+        .login-btn:hover {
+            background-color: #185aa8;
+            box-shadow: 0 2px 8px rgba(31, 113, 184, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-links {
+            text-align: center;
+            padding-top: 16px;
+            border-top: 1px solid #dadce0;
+        }
+
+        .login-links a {
+            font-size: 13px;
+            color: #1f71b8;
+            text-decoration: none;
+            margin: 0 12px;
+            cursor: pointer;
+        }
+
+        .login-links a:hover {
+            text-decoration: underline;
+        }
+
+        .alert-custom {
+            background-color: #fce4ec;
+            color: #c2185b;
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            border-left: 4px solid #c2185b;
+            display: none;
+        }
+
+        .alert-custom.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .form-input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-input-group i {
+            position: absolute;
+            right: 12px;
+            color: #9aa0a6;
+            font-size: 16px;
+            pointer-events: none;
+        }
+
+        .form-input-group input {
+            padding-right: 36px;
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 32px 24px;
+            }
+
+            .login-header h1 {
+                font-size: 24px;
+            }
+
+            .form-control {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+
+            .login-btn {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+
+            .navbar-custom-brand {
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- Navbar -->
+    <nav class="navbar-custom">
+        <div class="container-fluid px-4">
+            <div class="navbar-custom-brand">
+                <i class="fas fa-shield-alt"></i>
+                <span>Portail Captif NETCAP</span>
+            </div>
+        </div>
+    </nav>
 
-<h2>Connexion requise</h2>
+    <!-- Login Container -->
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Header -->
+            <div class="login-header">
+                <h1>Connexion</h1>
+                <p>Accédez à votre espace personnel</p>
+            </div>
 
-<form method="POST">
-    <input type="text" name="username" placeholder="Utilisateur" required>
-    <br><br>
+            <!-- Alert Message -->
+            <div class="alert-custom" id="errorAlert"></div>
 
-    <input type="password" name="password" placeholder="Mot de passe" required>
-    <br><br>
+            <!-- Login Form -->
+            <form method="POST" action="{{ url_for('auth') }}" id="loginForm">
+                <!-- Hidden redirect URL -->
+                <input type="hidden" name="redirect_url" value="{{ redirect_url }}" />
 
-    <button type="submit">Se connecter</button>
-</form>
+                <!-- Prénom -->
+                <div class="form-group">
+                    <label for="prenom">Prénom</label>
+                    <div class="form-input-group">
+                        <input
+                            type="text"
+                            id="prenom"
+                            name="prenom"
+                            class="form-control"
+                            placeholder="Entrez votre prénom"
+                            required />
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
 
+                <!-- Nom -->
+                <div class="form-group">
+                    <label for="nom">Nom</label>
+                    <div class="form-input-group">
+                        <input
+                            type="text"
+                            id="nom"
+                            name="nom"
+                            class="form-control"
+                            placeholder="Entrez votre nom"
+                            required />
+                        <i class="fas fa-user-tag"></i>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="email">Adresse email</label>
+                    <div class="form-input-group">
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            class="form-control"
+                            placeholder="votre.email@exemple.com"
+                            required />
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                </div>
+
+                <!-- CGU obligatoire -->
+                <div class="form-check">
+                    <input type="checkbox" id="accept_cgu" name="accept_cgu" required />
+                    <label for="accept_cgu">
+                        J'ai lu et j'accepte les <a href="{{ url_for('cgu') }}" target="_blank" style="color: #1f71b8; text-decoration: underline;">Conditions Générales d'Utilisation</a>
+                    </label>
+                </div>
+
+                <!-- Usage des données optionnel -->
+                <div class="form-check">
+                    <input type="checkbox" id="accept_data_usage" name="accept_data_usage" />
+                    <label for="accept_data_usage">
+                        J'accepte que mes données de navigation soient utilisées à des fins d'amélioration du service
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="login-btn" id="submitBtn" disabled>
+                    <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i>S'authentifier
+                </button>
+            </form>
+
+            <!-- Links -->
+            <div class="login-links">
+                <a href="#" onclick="showForgot()">Mot de passe oublié ?</a>
+                <span style="color: #dadce0;">|</span>
+                <a href="/cgu.html" onclick="showCGU()">CGU</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Éléments du formulaire
+        const form = document.getElementById('loginForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const prenomInput = document.getElementById('prenom');
+        const nomInput = document.getElementById('nom');
+        const emailInput = document.getElementById('email');
+        const cguCheckbox = document.getElementById('accept_cgu');
+        const errorAlert = document.getElementById('errorAlert');
+
+        // Validation email côté client
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Validation du formulaire
+        function validateForm() {
+            const prenom = prenomInput.value.trim();
+            const nom = nomInput.value.trim();
+            const email = emailInput.value.trim();
+            const cguAccepted = cguCheckbox.checked;
+
+            // Vérifications
+            const isPrenomValid = prenom.length >= 2;
+            const isNomValid = nom.length >= 2;
+            const isEmailValid = isValidEmail(email);
+            const isFormValid = isPrenomValid && isNomValid && isEmailValid && cguAccepted;
+
+            // Activer/désactiver le bouton
+            submitBtn.disabled = !isFormValid;
+
+            // Style visuel pour les champs invalides
+            [prenomInput, nomInput, emailInput].forEach(input => {
+                if (input.value.trim() && !isFieldValid(input)) {
+                    input.style.borderColor = '#ea4335';
+                } else {
+                    input.style.borderColor = input.value.trim() ? '#1f71b8' : '#dadce0';
+                }
+            });
+
+            return isFormValid;
+        }
+
+        function isFieldValid(input) {
+            const value = input.value.trim();
+            switch(input.id) {
+                case 'prenom':
+                case 'nom':
+                    return value.length >= 2;
+                case 'email':
+                    return isValidEmail(value);
+                default:
+                    return value.length > 0;
+            }
+        }
+
+        // Gestionnaire d'événements
+        [prenomInput, nomInput, emailInput, cguCheckbox].forEach(element => {
+            element.addEventListener('input', validateForm);
+            element.addEventListener('change', validateForm);
+        });
+
+        // Soumission du formulaire
+        form.addEventListener('submit', function(e) {
+            if (!validateForm()) {
+                e.preventDefault();
+                showError('Veuillez remplir tous les champs obligatoires et accepter les CGU.');
+                return false;
+            }
+
+            // Désactiver le bouton pendant la soumission
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i>Traitement...';
+        });
+
+        // Affichage des erreurs
+        function showError(message) {
+            errorAlert.textContent = message;
+            errorAlert.classList.add('show');
+            setTimeout(() => {
+                errorAlert.classList.remove('show');
+            }, 5000);
+        }
+
+        // Affichage des messages flash de Flask
+        {% for message in get_flashed_messages(category_filter=['error']) %}
+            showError("{{ message | replace('"', '\\"') }}");
+        {% endfor %}
+
+        // Liens
+        function showForgot() {
+            alert('Pour réinitialiser votre session, contactez l\'administrateur réseau.');
+        }
+
+        function showCGU() {
+            window.open('{{ url_for("cgu") }}', '_blank');
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            validateForm(); // Validation initiale
+        });
+    </script>
 </body>
 </html>
